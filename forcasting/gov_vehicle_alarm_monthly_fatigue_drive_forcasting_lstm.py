@@ -2,44 +2,36 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from preprocess.gov_vehicle_alarm_monthly_preprocess import exigency_data_path
+from preprocess.gov_vehicle_alarm_monthly_preprocess_for_lstm import fatigue_drive_data
 
-save_mode_dir = 'model/exigency'
-train = False
-
-# 导入数据
-exigency_data = []
-with open(exigency_data_path) as exigency_data_file:
-    for line in exigency_data_file:
-        one_sample = [float(element) for element in line.split()]
-        # 留后两个数字预测
-        one_sample = one_sample[:-2]
-        exigency_data.append(one_sample)
-
-exigency_data = exigency_data
-
-data = [num for sample in exigency_data for num in sample]
-data=np.array(data)
-#增加维度
-normalize_data=data[:,np.newaxis]
-
+save_mode_dir = 'model/fatigue_drive/'
+predict_file_path = 'fatigue_drive_data_predict.csv'
+train = True
 
 #生成训练集
 #设置常量
-time_step=10      #时间步
+time_step=4      #时间步
 rnn_unit=10       #hidden layer units
 batch_size=60     #每一批次训练多少个样例
 input_size=1      #输入层维度
 output_size=1     #输出层维度
-lr=0.0006         #学习率
+lr=0.0001         #学习率
+epoch = 100
+
+# 导入数据
+data_train = []
+for one_sample in fatigue_drive_data:
+    # 留后两个数字预测
+    one_sample = one_sample[:-2]
+    data_train.append([[num] for num in one_sample])
+
 train_x,train_y=[],[]   #训练集
-for i in range(len(normalize_data)-time_step-1):
-    x=normalize_data[i:i+time_step]
-    y=normalize_data[i+1:i+time_step+1]
-    train_x.append(x.tolist())
-    train_y.append(y.tolist())
-
-
+for one_sample in data_train:
+    for i in range(len(one_sample) - time_step - 1):
+        x = one_sample[i:i + time_step]
+        y = one_sample[i + 1:i + time_step + 1]
+        train_x.append(x)
+        train_y.append(y)
 
 #——————————————————定义神经网络变量——————————————————
 X=tf.placeholder(tf.float32, [None,time_step,input_size])    #每批次输入网络的tensor
@@ -53,8 +45,6 @@ biases={
         'in':tf.Variable(tf.constant(0.1,shape=[rnn_unit,])),
         'out':tf.Variable(tf.constant(0.1,shape=[1,]))
         }
-
-
 
 #——————————————————定义神经网络变量——————————————————
 def lstm(batch):      #参数：输入网络批次数目
@@ -72,8 +62,6 @@ def lstm(batch):      #参数：输入网络批次数目
     pred=tf.matmul(output,w_out)+b_out
     return pred,final_states
 
-
-
 # 训练
 def train_lstm():
     global batch_size
@@ -85,7 +73,7 @@ def train_lstm():
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         # epoch
-        for i in range(3):
+        for i in range(epoch):
             step=0
             start=0
             end=start+batch_size
@@ -101,11 +89,6 @@ def train_lstm():
 
 # 预测
 def prediction():
-    last_dot_index = exigency_data_path.rfind('.')
-    predict_file_path = exigency_data_path[:last_dot_index]
-    predict_file_path += '_predict'
-    predict_file_path += exigency_data_path[last_dot_index:]
-
     pred,_=lstm(1)      #预测时只输入[1,time_step,input_size]的测试数据
     saver=tf.train.Saver(tf.global_variables())
     with tf.Session() as sess:
@@ -114,13 +97,12 @@ def prediction():
         saver.restore(sess, module_file)
 
         predicts = []
-        for sample in exigency_data:
-            # 取训练集最后一行为测试样本。shape=[1,time_step,input_size]
+        for sample in data_train:
             prev_seq = np.array(sample)
             prev_seq = prev_seq[:, np.newaxis]
             prev_seq = prev_seq[-1 * time_step:]
             predict = []
-            # 得到之后100个预测结果
+            # 得到之后4个预测结果
             for i in range(4):
                 next_seq = sess.run(pred, feed_dict={X: [prev_seq]})
                 predict += next_seq[-1].tolist()
