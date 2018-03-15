@@ -15,20 +15,20 @@ for column in overspeed_columns:
 
 need_columns = ['VehicleID','StatMonth','Exigency','overspeed_all','FatigueDrive','VehicleType','ZoneID','CompanyID']
 gov_vehicle_alarm_monthly = gov_vehicle_alarm_monthly[need_columns]
-gov_vehicle_alarm_monthly['month'] = gov_vehicle_alarm_monthly['StatMonth'].apply(lambda m : str(m)[-2:])
+# gov_vehicle_alarm_monthly['month'] = gov_vehicle_alarm_monthly['StatMonth'].apply(lambda m : str(m)[-2:])
 
-print(len(gov_vehicle_alarm_monthly['VehicleType'].unique()))
-print(len(gov_vehicle_alarm_monthly['ZoneID'].unique()))
-print(len(gov_vehicle_alarm_monthly['CompanyID'].unique()))
-print(len(gov_vehicle_alarm_monthly['month'].unique()))
+# print(len(gov_vehicle_alarm_monthly['VehicleType'].unique()))
+# print(len(gov_vehicle_alarm_monthly['ZoneID'].unique()))
+# print(len(gov_vehicle_alarm_monthly['CompanyID'].unique()))
+# print(len(gov_vehicle_alarm_monthly['month'].unique()))
 
-gov_vehicle_alarm_monthly = pd.get_dummies(gov_vehicle_alarm_monthly,prefix='vehicle_type', columns=['VehicleType'])
+# gov_vehicle_alarm_monthly = pd.get_dummies(gov_vehicle_alarm_monthly,prefix='vehicle_type', columns=['VehicleType'])
 
-gov_vehicle_alarm_monthly = pd.get_dummies(gov_vehicle_alarm_monthly, prefix='zone_id', columns=['ZoneID'])
+# gov_vehicle_alarm_monthly = pd.get_dummies(gov_vehicle_alarm_monthly, prefix='zone_id', columns=['ZoneID'])
 
 # gov_vehicle_alarm_monthly = pd.get_dummies(gov_vehicle_alarm_monthly,prefix='company_id', columns=['CompanyID'])
 
-gov_vehicle_alarm_monthly = pd.get_dummies(gov_vehicle_alarm_monthly,prefix='month', columns=['month'])
+# gov_vehicle_alarm_monthly = pd.get_dummies(gov_vehicle_alarm_monthly,prefix='month', columns=['month'])
 
 print(gov_vehicle_alarm_monthly.columns)
 
@@ -38,7 +38,7 @@ gov_vehicle_alarm_monthly.sort_values(['VehicleID','StatMonth'], axis=0).to_csv(
 months = [201503, 201504, 201505, 201506, 201507, 201508, 201509, 201510, 201511, 201512, 201601, 201602,
           201603, 201604, 201605, 201606]
 
-gov_vehicle_alarm_monthly_need_data_normal = open(data_dir + 'gov_vehicle_alarm_monthly_need_data_normal.csv', mode='w')
+gov_vehicle_alarm_monthly_need_data_normal = open(data_dir + 'gov_vehicle_alarm_monthly_need_data_normal_only_alarm.csv', mode='w')
 
 def deal_one_user_records(single_user_records):
     valid_single_user_recoreds = []
